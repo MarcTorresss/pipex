@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 18:01:27 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/05 15:30:17 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/11 18:29:21 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,85 +36,97 @@ char    **ft_envpaths(char  **env)
     return (paths);
 }
 
-void    child_process(int f1, char *cmd1, int *end)
-{
-    dup2(f1, STDIN_FILENO); // f1 nuvea entrada estandar
-    dup2(end[1], STDOUT_FILENO); // end[1] nueva salida estandar
-    close(end[0]); //cerramos lo que no se utilliza
-    close(f1);
-    //funcion para ejecutar por cada ruta
-}
-
-void    parent_process(int f2, char *cmd2, int *end)
-{
-    int status;
-    waitpid(-1, &status, 0); // -1 para checkear que el hijo termine
-    dup2(f2, STDOUT_FILENO);
-    dup2(end[0], STDIN_FILENO);
-    close(end[1]);
-    close(f2);
-    //funcion para ejecutar por cada ruta
-}
-
-void    pipex(int f1, int f2, char **argv, char **paths)
-{
-    int     end[2];
-    pid_t   parent;
-
-    pipe(end); //obtenemos y guardamos dos fds
-    parent = fork();
-    if (parent < 0)
-        return (perror("Fork"));
-    if (!parent) // si fork() debuelve 0, estamos en el proceso hijo
-        child_process(f1, argv[2], end);
-    else
-        parent_process(f2, argv[3], end);
-}
-
-int start_exv(char **path, char *cmd1, char *cmd2)
+int    ft_execve(t_pipex *stp, char **envp, char **comand)
 {
     int     y;
-    int     ok;
-    char    **com1;
-    char    **com2;
+    char    *cmd;
+    int     qtt;
 
-    com1 = ft_split(cmd1, ' ');
-    com2 = ft_split(cmd2, ' ');
+    qtt = 0;
     y = 0;
-    ok = 0;
-
-    while (path[y] != NULL)
+    while (stp->paths[y] != NULL)
     {
-        if (access(ft_strjoin(path[y], com1[0]), F_OK) == 0)
-        {
-            ok = 1;
-        }
+        cmd = ft_strjoin(stp->paths[y], "/");
+        if (!cmd)
+            return (-1);
+        cmd = ft_strjoin(cmd, comand[0]);
+        if (!cmd)
+            return (-1);
+        qtt = execve(cmd, comand, envp);
+        free(cmd);
         y++;
     }
-    if (ok == 0)
-        return (ft_printf("Error: Command not found"), -1);
-    else 
-        return (0);
+    return (qtt);
 }
 
-int main(int argc, char **argv, char **env)
+int    child_process(t_pipex *stp, char **argv, char **envp)
 {
-    char    **paths;
-    int     f1;
-    int     f2;
+    dup2(stp->f1, STDIN_FILENO); // f1 nuvea entrada estandar
+    dup2(stp->end[1], STDOUT_FILENO); // end[1] nueva salida estandar
+    close(stp->end[0]); //cerramos lo que no se utilliza
+    close(stp->f1);
+    stp->com1 = ft_split(argv[2], ' ');
+    //ft_printf("\n\n\n%d\n\n\n", ft_execve(stp, envp, stp->com1));
+    ft_execve(stp, envp, stp->com1);
+    exit(EXIT_FAILURE);
+    return (0);
+}
+
+int    parent_process(t_pipex *stp, char **argv, char **envp)
+{
+    int     status;
+
+    waitpid(-1, &status, 0); //TIENES EL PID DEL HIJO ASI QUE A MIRAR CUAL ES NO HAGAS CERDADAS
+    dup2(stp->f2, STDOUT_FILENO);
+    dup2(stp->end[0], STDIN_FILENO);
+    close(stp->end[1]);
+    close(stp->f2);
+    stp->com2 = ft_split(argv[3], ' ');
+    ft_printf("\n\n\n%d\n\n\n", ft_execve(stp, envp, stp->com2));
+    //ft_execve(stp, envp, stp->com2);
+    exit(EXIT_FAILURE);
+    return (0);
+}
+
+int    pipex(t_pipex *stp, char **argv, char **envp)
+{
+    int status;
+
+    waitpid(-1, &status, 0);
+    if (!(WIFEXITED(status)))
+    {
+        printf("El proceso hijo ha terminado correctamente.\n");
+        printf("Código de salida: %d\n", WEXITSTATUS(status));
+    }
+    pipe(stp->end); //obtenemos y guardamos dos fds linkados
+    stp->parent = fork(); //pid del hijo
+    if (stp->parent < 0)
+        return (perror("Fork"), -1); // que hace perror?
+    if (!stp->parent) // si fork() debuelve 0, estamos en el proceso hijo
+        child_process(stp, argv, envp);
+    else
+        parent_process(stp, argv, envp);
+    return (0);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    t_pipex stp;
     
-    f1 = 0;
-    f2 = 0;
-    if (argc != 3)
+    stp.f1 = 0;
+    stp.f2 = 0;
+    if (argc != 5)
         return (ft_printf("Too many arguments :/\n"), -1);
+    if (argv[2] == NULL || argv[3] == NULL)
+        return (ft_printf("Invalid Comand :/\n"), -1);
     else
     {
-        f1 = open(argv[1], O_RDONLY);
-        f2 = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
-        if (f1 < 0 || f2 < 0)
+        stp.f1 = open(argv[1], O_RDONLY);
+        stp.f2 = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
+        if (stp.f1 < 0 || stp.f2 < 0)
             return (-1);
-        paths = ft_envpaths(env);
-        pipex(f1, f2, argv, paths);
-        return (0);
+        stp.paths = ft_envpaths(envp);
+        pipex(&stp, argv, envp);
     }
+    return (0);
 }
