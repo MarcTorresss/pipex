@@ -1,0 +1,13 @@
+Makefile
+hh
+infile.txt
+inputfile
+klk
+libft
+main.c
+outfile
+pipex
+pipex.h
+pipexout.txt
+temp
+test_pipex.sh

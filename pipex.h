@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 18:00:07 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/11 17:59:51 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/12 15:00:27 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <stdarg.h>
 # include <limits.h>
 #include <sys/wait.h>
+#include <errno.h>
 # include "libft/libft.h"
 
 typedef struct s_pipex

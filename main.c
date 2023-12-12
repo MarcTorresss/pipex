@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 18:01:27 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/11 18:29:21 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/12 14:43:24 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,27 +36,48 @@ char    **ft_envpaths(char  **env)
     return (paths);
 }
 
-int    ft_execve(t_pipex *stp, char **envp, char **comand)
+int check_errors()
+{
+    if (errno == EACCES)
+    {
+        perror("Permisdion denied");
+        exit(126);
+    }
+    else if (errno == ENOENT)
+    {
+       perror("Command not found");
+        exit(127);
+    }
+    exit(EXIT_SUCCESS);
+}
+char    *check_path(char **paths, char **comand)
 {
     int     y;
     char    *cmd;
-    int     qtt;
 
-    qtt = 0;
     y = 0;
-    while (stp->paths[y] != NULL)
+    while (paths[y] != NULL)
     {
-        cmd = ft_strjoin(stp->paths[y], "/");
+        cmd = ft_strjoin(paths[y], "/");
         if (!cmd)
-            return (-1);
+            return (NULL);
         cmd = ft_strjoin(cmd, comand[0]);
         if (!cmd)
-            return (-1);
-        qtt = execve(cmd, comand, envp);
-        free(cmd);
+            return (NULL);
+        if (access(cmd, X_OK) == 0)
+            return (cmd);
         y++;
     }
-    return (qtt);
+    return (NULL);
+}
+int ft_execve(t_pipex *stp, char **envp, char **comand)
+{
+    char    *cmd;
+
+    cmd = check_path(stp->paths, comand);
+    if (cmd != NULL)
+        execve(cmd, comand, envp);
+    return (check_errors());
 }
 
 int    child_process(t_pipex *stp, char **argv, char **envp)
@@ -66,47 +87,33 @@ int    child_process(t_pipex *stp, char **argv, char **envp)
     close(stp->end[0]); //cerramos lo que no se utilliza
     close(stp->f1);
     stp->com1 = ft_split(argv[2], ' ');
-    //ft_printf("\n\n\n%d\n\n\n", ft_execve(stp, envp, stp->com1));
-    ft_execve(stp, envp, stp->com1);
-    exit(EXIT_FAILURE);
-    return (0);
+    return (ft_execve(stp, envp, stp->com1));
 }
 
 int    parent_process(t_pipex *stp, char **argv, char **envp)
 {
     int     status;
 
-    waitpid(-1, &status, 0); //TIENES EL PID DEL HIJO ASI QUE A MIRAR CUAL ES NO HAGAS CERDADAS
+    waitpid(-1, &status, 0); //Pid del hijo
+    /*if ((WIFEXITED(status)) == 1)
+        exit (WEXITSTATUS(status));*/
     dup2(stp->f2, STDOUT_FILENO);
     dup2(stp->end[0], STDIN_FILENO);
     close(stp->end[1]);
     close(stp->f2);
     stp->com2 = ft_split(argv[3], ' ');
-    ft_printf("\n\n\n%d\n\n\n", ft_execve(stp, envp, stp->com2));
-    //ft_execve(stp, envp, stp->com2);
-    exit(EXIT_FAILURE);
-    return (0);
+    return (ft_execve(stp, envp, stp->com2));
 }
 
 int    pipex(t_pipex *stp, char **argv, char **envp)
 {
-    int status;
-
-    waitpid(-1, &status, 0);
-    if (!(WIFEXITED(status)))
-    {
-        printf("El proceso hijo ha terminado correctamente.\n");
-        printf("Código de salida: %d\n", WEXITSTATUS(status));
-    }
     pipe(stp->end); //obtenemos y guardamos dos fds linkados
     stp->parent = fork(); //pid del hijo
     if (stp->parent < 0)
-        return (perror("Fork"), -1); // que hace perror?
+        return (perror("Fork: "), -1); // que hace perror?
     if (!stp->parent) // si fork() debuelve 0, estamos en el proceso hijo
         child_process(stp, argv, envp);
-    else
-        parent_process(stp, argv, envp);
-    return (0);
+    return (parent_process(stp, argv, envp));
 }
 
 int main(int argc, char **argv, char **envp)
@@ -121,12 +128,21 @@ int main(int argc, char **argv, char **envp)
         return (ft_printf("Invalid Comand :/\n"), -1);
     else
     {
-        stp.f1 = open(argv[1], O_RDONLY);
-        stp.f2 = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
-        if (stp.f1 < 0 || stp.f2 < 0)
-            return (-1);
-        stp.paths = ft_envpaths(envp);
-        pipex(&stp, argv, envp);
+        if (access(argv[1], R_OK) == 0)
+        {
+            stp.f1 = open(argv[1], O_RDONLY);
+            /*if (access(argv[4], R_OK) == 0)
+            {*/
+            stp.f2 = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
+            if (stp.f1 < 0 || stp.f2 < 0)
+                return (-1);
+            stp.paths = ft_envpaths(envp);
+            return (pipex(&stp, argv, envp));
+            close(stp.f2);
+           // }
+            close(stp.f1);
+        }
     }
-    return (0);
+    //ft_printf("\n%d\n", check_errors());
+    return (check_errors());
 }
