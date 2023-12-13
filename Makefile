@@ -6,7 +6,7 @@
 #    By: martorre <martorre@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/12/04 17:57:56 by martorre          #+#    #+#              #
-#    Updated: 2023/12/04 18:08:33 by martorre         ###   ########.fr        #
+#    Updated: 2023/12/13 17:54:46 by martorre         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ LIBFT = libft
 
 DIR_O = temp/
 
-SOURCES = main.c
+SOURCES = main.c utils.c
 
 OBJS = $(addprefix $(DIR_O),$(SOURCES:.c=.o))
 

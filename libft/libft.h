@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/12 14:48:57 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/04 18:43:29 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/13 17:50:17 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,29 +77,5 @@ void	ft_lstdelone(t_list *lst, void (*del)(void*));
 void	ft_lstiter(t_list *lst, void (*f)(void *));
 void	ft_lstclear(t_list **lst, void (*del)(void*));
 t_list	*ft_lstmap(t_list *lst, void *(*f)(void *), void (*del)(void *));
-
-// -----------------------  PRINTF  -----------------------//
-
-int		ft_putchar(char c);
-int		ft_putstr(char *s);
-int		ft_printf(char const *str, ...);
-int		ft_putnbr_hex(unsigned int nb, char *base, int out);
-int		ft_putnbr_hex_v(unsigned long nb, char *base, int out);
-int		ft_withoutsig(const char *str);
-char	*ft_nosig(int n);
-void	num_utils(unsigned int *num, unsigned int *col_count,
-			unsigned int *col_val);
-int		testprint(void);
-int		ft_free_itoa(int n);
-int		ft_free_nosig(int n);
-
-// -----------------------  GET NEXT LINE  -----------------------//
-
-char	*get_next_line(int fd);
-char	*gtnl_strjoin(char const *s1, char const *s2);
-char	*gtnl_strchr(const char *s, size_t c);
-char	*gtnl_substr(char const *s, size_t start, size_t len);
-char	*gtnl_strdup(const char *s1);
-size_t	gtnl_strlen(const char *s);
 
 #endif
