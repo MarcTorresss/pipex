@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/13 17:52:54 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/18 14:51:12 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/18 19:27:26 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ int	check_errors(void)
 		perror("Command not foundC");
 		exit(127);
 	}
-	exit(1);
+	return (0);
 }
 
 char	*check_ut(int *exist, int *perm, t_pipex *stp, char **comand)
