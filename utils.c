@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/13 17:52:54 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/18 14:31:42 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/18 14:51:12 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,38 +45,37 @@ int	check_errors(void)
 	}
 	exit(1);
 }
-/*char	*check_ut(int *exist, int *perm, char **paths, char **comand)
+
+char	*check_ut(int *exist, int *perm, t_pipex *stp, char **comand)
 {
-	int		y;
-	char	*cmd;
-	char	*cmdp;
+	int	y;
 
 	y = -1;
-	while (paths[++y] != NULL)
+	while (stp->paths[++y] != NULL)
 	{
-		cmdp = ft_strjoin(paths[y], "/");
-		if (!cmdp)
+		stp->cmdp = ft_strjoin(stp->paths[y], "/");
+		if (!stp->cmdp)
 			return (NULL);
-		cmd = ft_strjoin(cmdp, comand[0]);
-		free (cmdp);
-		if (!cmd)
+		stp->cmd = ft_strjoin(stp->cmdp, comand[0]);
+		free(stp->cmdp);
+		if (!stp->cmd)
 			return (NULL);
-		if (access(cmd, F_OK) == 0)
+		if (access(stp->cmd, F_OK) == 0)
 		{
-			(*exist) = 1;
-			if (access(cmd, X_OK) == 0)
+			*exist = 1;
+			if (access(stp->cmd, X_OK) == 0)
 			{
-				(*perm) = 1;
-				return (NULL);
+				*perm = 1;
+				break ;
 			}
 			else
-				free (cmd);
+				free(stp->cmd);
 		}
 	}
-	return (cmd);
+	return (stp->cmd);
 }
 
-char	*check_path(char **paths, char **comand)
+char	*check_path(t_pipex *stp, char **comand)
 {
 	int		exist;
 	int		perm;
@@ -84,66 +83,18 @@ char	*check_path(char **paths, char **comand)
 
 	exist = 0;
 	perm = 0;
-	cmd = check_ut(&exist, &perm, paths, comand);
+	cmd = check_ut(&exist, &perm, stp, comand);
 	if (exist == 0)
 	{
 		perror("Command not foundB");
-		exit (127);
+		exit(127);
 	}
 	if (perm == 1)
 		return (cmd);
 	else
 	{
 		perror("Permission denied");
-		exit (126);
-	}
-	return (NULL);
-}*/
-
-char	*check_path(char **paths, char **comand)
-{
-	int		y;
-	char	*cmd;
-	char	*cmdp;
-	int		exist;
-	int		perm;
-
-	y = 0;
-	exist = 0;
-	perm = 0;
-	while (paths[y] != NULL)
-	{
-		cmdp = ft_strjoin(paths[y], "/");
-		if (!cmdp)
-			return (NULL);
-		cmd = ft_strjoin(cmdp, comand[0]);
-		free (cmdp);
-		if (!cmd)
-			return (NULL);
-		if (access(cmd, F_OK) == 0)
-		{
-			exist = 1;
-			if (access(cmd, X_OK) == 0)
-			{
-				perm = 1;
-				break;
-			}
-			else
-				free (cmd);
-		}
-		y++;
-	}
-	if (exist == 0)
-	{
-		perror("Command not foundB");
-		exit (127);
-	}
-	if (perm == 1)
-		return (cmd);
-	else
-	{
-		perror("Permission denied");
-		exit (126);
+		exit(126);
 	}
 	return (NULL);
 }
@@ -162,7 +113,7 @@ char	*check_path_ch(char **paths, char **comand)
 		if (!cmdp)
 			return (NULL);
 		cmd = ft_strjoin(cmdp, comand[0]);
-		free (cmdp);
+		free(cmdp);
 		if (!cmd)
 			return (NULL);
 		if (access(cmd, F_OK) == 0)

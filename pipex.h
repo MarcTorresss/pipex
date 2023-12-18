@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 18:00:07 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/14 11:44:29 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/18 14:53:41 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,14 +34,16 @@ typedef struct s_pipex
 	int		f2;
 	int		end[2];
 	int		numchi;
+	char	*cmd;
+	char	*cmdp;
+	char	*cmdexe;
 	pid_t	child1;
 	pid_t	child2;
 }			t_pipex;
 
-char	**ft_envpaths(char **env);
-int     check_errors(void);
-char	*check_path(char **paths, char **comand);
-char	*check_path_ch(char **paths, char **comand);
-
+char		**ft_envpaths(char **env);
+int			check_errors(void);
+char		*check_path(t_pipex *stp, char **comand);
+char		*check_path_ch(char **paths, char **comand);
 
 #endif

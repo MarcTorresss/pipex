@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 18:01:27 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/18 14:11:11 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/18 14:54:26 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,7 @@
 
 int	ft_execve(t_pipex *stp, char **envp, char **comand)
 {
-	char	*cmd;
-
-	cmd = NULL;
+	stp->cmdexe = NULL;
 	if (access(comand[0], F_OK) == 0)
 	{
 		if (access(comand[0], X_OK) == 0)
@@ -30,11 +28,11 @@ int	ft_execve(t_pipex *stp, char **envp, char **comand)
 			return (perror("Command not foundK"), 0);
 	}
 	if (stp->numchi == 1)
-		cmd = check_path_ch(stp->paths, comand);
+		stp->cmdexe = check_path_ch(stp->paths, comand);
 	else if (stp->numchi == 2)
-		cmd = check_path(stp->paths, comand);
-	if (cmd != NULL)
-		execve(cmd, comand, envp);
+		stp->cmdexe = check_path(stp, comand);
+	if (stp->cmdexe != NULL)
+		execve(stp->cmdexe, comand, envp);
 	else if (stp->numchi == 2)
 		return (check_errors());
 	else if (stp->numchi == 1 && stp->paths[0] != NULL)
@@ -44,10 +42,10 @@ int	ft_execve(t_pipex *stp, char **envp, char **comand)
 
 void	child_one(t_pipex *stp, char **argv, char **envp)
 {
-    stp->numchi = 1;
-	dup2(stp->f1, STDIN_FILENO);// f1 nuvea entrada estandar
-	dup2(stp->end[1], STDOUT_FILENO);// end[1] nueva salida estandar
-	close(stp->end[0]);// cerramos lo que no se utilliza
+	stp->numchi = 1;
+	dup2(stp->f1, STDIN_FILENO);
+	dup2(stp->end[1], STDOUT_FILENO);
+	close(stp->end[0]);
 	close(stp->f1);
 	stp->com1 = ft_split(argv[2], ' ');
 	ft_execve(stp, envp, stp->com1);
@@ -57,7 +55,7 @@ int	child_two(t_pipex *stp, char **argv, char **envp)
 {
 	if (stp->f1 != -1)
 	{
-        stp->numchi = 2;
+		stp->numchi = 2;
 		dup2(stp->f2, STDOUT_FILENO);
 		dup2(stp->end[0], STDIN_FILENO);
 		close(stp->f2);
@@ -74,8 +72,8 @@ int	pipex(t_pipex *stp, char **argv, char **envp)
 	int	ret;
 
 	ret = 0;
-	pipe(stp->end);// obtenemos y guardamos dos fds linka
-	stp->child1 = fork();// pid del hijo
+	pipe(stp->end);
+	stp->child1 = fork();
 	if (stp->child1 < 0)
 		perror("Pipex: ");
 	if (stp->child1 == 0)
@@ -85,7 +83,7 @@ int	pipex(t_pipex *stp, char **argv, char **envp)
 		perror("Pipex: ");
 	if (stp->child2 == 0)
 		ret = child_two(stp, argv, envp);
-	waitpid(-1, &status, 0);// Pid del hijo
+	waitpid(-1, &status, 0);
 	if ((WIFEXITED(status)) == 1)
 		exit(WEXITSTATUS(status));
 	close(stp->end[0]);
