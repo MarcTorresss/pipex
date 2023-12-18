@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 18:01:27 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/14 15:46:21 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/18 14:11:11 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,20 +27,17 @@ int	ft_execve(t_pipex *stp, char **envp, char **comand)
 			exit(126);
 		}
 		else
-		{
-			perror("Command not foundA");
-			return (0);
-		}
+			return (perror("Command not foundK"), 0);
 	}
-	if (stp->child1 == 1)
+	if (stp->numchi == 1)
 		cmd = check_path_ch(stp->paths, comand);
-	else
+	else if (stp->numchi == 2)
 		cmd = check_path(stp->paths, comand);
 	if (cmd != NULL)
 		execve(cmd, comand, envp);
-	/*else if (stp->numchi == 2)
-		return (check_errors());*/
-	else if (stp->child1 == 1)
+	else if (stp->numchi == 2)
+		return (check_errors());
+	else if (stp->numchi == 1 && stp->paths[0] != NULL)
 		perror("Command not foundA");
 	return (0);
 }
@@ -121,5 +118,4 @@ int	main(int argc, char **argv, char **envp)
 		close(stp.f1);
 	}
 	return (0);
-	//return (check_errors());
 }
