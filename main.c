@@ -6,7 +6,7 @@
 /*   By: martorre <martorre@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 18:01:27 by martorre          #+#    #+#             */
-/*   Updated: 2023/12/13 18:36:36 by martorre         ###   ########.fr       */
+/*   Updated: 2023/12/14 15:46:21 by martorre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,31 @@ int	ft_execve(t_pipex *stp, char **envp, char **comand)
 	char	*cmd;
 
 	cmd = NULL;
-	if (access(comand[0], X_OK) == 0)
-		execve(comand[0], comand, envp);
+	if (access(comand[0], F_OK) == 0)
+	{
+		if (access(comand[0], X_OK) == 0)
+			execve(comand[0], comand, envp);
+		else if (stp->child1 != 0)
+		{
+			perror("Pipex");
+			exit(126);
+		}
+		else
+		{
+			perror("Command not foundA");
+			return (0);
+		}
+	}
+	if (stp->child1 == 1)
+		cmd = check_path_ch(stp->paths, comand);
 	else
 		cmd = check_path(stp->paths, comand);
 	if (cmd != NULL)
 		execve(cmd, comand, envp);
-	else if (stp->numchi == 2)
-		return (check_errors());
+	/*else if (stp->numchi == 2)
+		return (check_errors());*/
+	else if (stp->child1 == 1)
+		perror("Command not foundA");
 	return (0);
 }
 
@@ -97,11 +114,12 @@ int	main(int argc, char **argv, char **envp)
 			perror("Pipex");
 		stp.f2 = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
 		if (stp.f2 < 0)
-			exit(1);
+			return (perror("Pipex"), 1);
 		stp.paths = ft_envpaths(envp);
 		return (pipex(&stp, argv, envp));
 		close(stp.f2);
 		close(stp.f1);
 	}
-	return (check_errors());
+	return (0);
+	//return (check_errors());
 }
